@@ -1,0 +1,23 @@
+[project]
+name = "shi-database"
+version = "0.1.0"
+description = "Pull U.S. marine-industry companies from Data Axle by NAICS code"
+requires-python = ">=3.10"
+
+[project.scripts]
+shi-dataaxle-pull = "shi_database.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "--tb=short -q --strict-markers"
+
+[tool.ruff]
+line-length = 110
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM", "RUF", "S"]
+per-file-ignores = { "tests/*" = ["S101"] }
