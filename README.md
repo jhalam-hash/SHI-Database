@@ -52,6 +52,31 @@ on Data Axle's `infogroup_id`.
 When a nationwide query returns more records than the search endpoint can page through
 (4,000 by default), the tool re-runs it state by state, covering all states plus DC, PR, GU and VI.
 
+## Building the workbook from Reference Solutions exports
+
+If you have Data Axle through a library subscription (Data Axle Reference Solutions,
+formerly ReferenceUSA) instead of an API key, export "Detail" spreadsheets from the web
+interface and build the workbook from them. This step needs `openpyxl`:
+
+```bash
+pip install openpyxl
+PYTHONPATH=src python -m shi_database.workbook ~/Downloads/Detail*.xlsx
+# → output/us_marine_companies.xlsx
+```
+
+The importer matches each company's Primary NAICS and NAICS 1-10 columns (the first
+6 digits of Data Axle's 8-digit codes) against `data/marine_naics_codes.csv`. It
+de-duplicates on IUSA Number and writes these tabs:
+
+- **Summary:** counts by category, SHI NAICS code, primary NAICS and state, as live formulas, plus the export date and method.
+- **One tab per SHI category.**
+- **Not in SHI NAICS:** exported companies with no matching code.
+- **All Companies.**
+
+Rows matched only through *broad* codes whose name has no marine term are highlighted
+yellow (`Needs Review = yes`). Reference Solutions caps the rows per download, so export
+each search in full (several files are fine) and search by the SHI NAICS codes above.
+
 ## Things to confirm against your Data Axle account
 
 These settings come from public integrations, not Data Axle's official API reference, so
@@ -60,8 +85,9 @@ check them with `--counts-only` on a small category first:
 - **Endpoint/auth:** `POST https://api.data-axle.com/v1/places/search` with an
   `X-AUTH-TOKEN` header.
 - **NAICS filter attribute:** the default is `naics_codes`. If counts come back as 0,
-  pass the attribute name from your account's docs with `--naics-attribute`. Data Axle
-  stores some NAICS values as 8-digit codes; if so, add those codes to the CSV.
+  pass the attribute name from your account's docs with `--naics-attribute`. Reference
+  Solutions exports (October 2026) confirm that Data Axle stores NAICS as **8-digit**
+  codes (e.g. `48311101`), so the API filter may need 8-digit values or a prefix match.
 - **Packages:** the default is `standard_v1`. Change it with `--package` if your
   subscription uses different field packages.
 - **Paging window:** `DEFAULT_MAX_WINDOW` in `dataaxle.py` (4,000).
@@ -69,6 +95,6 @@ check them with `--counts-only` on a small category first:
 ## Development
 
 ```bash
-pip install pytest ruff mypy
+pip install pytest ruff mypy openpyxl types-openpyxl
 python -m pytest && ruff check . && ruff format --check . && python -m mypy --strict src tests
 ```
