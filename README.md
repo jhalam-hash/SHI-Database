@@ -12,6 +12,13 @@ database, organized by NAICS code. It covers these categories:
 | Government Design Organizations | — | 928110 National Security (NAVSEA, NSWC Carderock, SUPSHIP), 926120 Transportation Programs (MARAD) |
 | Hydrodynamics Specialists | — | 541715 Physical/Engineering R&D, 541380 Testing Labs, 541690 Scientific & Technical Consulting |
 | Marine Engineering Organizations | — | 541370 Surveying & Mapping (hydrographic), 541990 Other Professional Services, 813920 Professional Orgs (SNAME, ASNE), 813910 Business Associations |
+| Offshore Wind | — | 221115 Wind Power Generation, 237130 Power Line Construction (subsea cable install), 333611 Turbine Mfg, 335929 Energy Wire Mfg (subsea cable) |
+| Offshore Oil & Gas | — | 211120 Crude Petroleum Extraction, 213111 Drilling Wells, 213112 Oil & Gas Support, 541360 Geophysical Surveying |
+| Water Transportation | 483111–483114 Deep Sea, Coastal & Great Lakes, 483211–483212 Inland Water | — |
+| Ports & Cargo | 488320 Marine Cargo Handling | 488510 Freight Transportation Arrangement |
+| Recreational Marine | 713930 Marinas, 441222 Boat Dealers, 487210 Scenic Water Transportation | 811490 Other Repair (boat repair) |
+| Marine Suppliers | — | 423860 Transportation Equipment Wholesalers, 532411 Vessel Rental & Leasing |
+| Fishing & Maritime Education | 114111 Finfish Fishing, 114112 Shellfish Fishing | 611310 Colleges (maritime academies) |
 
 The full table, with notes on each code, is in
 [`data/marine_naics_codes.csv`](data/marine_naics_codes.csv). Edit it to add or remove codes.
@@ -20,7 +27,10 @@ The full table, with notes on each code, is in
 own. Those firms sit inside large general codes such as 541330 Engineering Services,
 which has well over 100k U.S. establishments. For each *broad* code, the tool runs one
 Data Axle query per marine keyword (`marine`, `naval`, `ship`, `hydrodynamic`,
-`offshore`, ...; see `MARINE_QUERY_KEYWORDS` in `src/shi_database/records.py`).
+`offshore`, ...; see `MARINE_QUERY_KEYWORDS` in `src/shi_database/records.py`). A broad
+code can list its own keywords in the CSV's `keywords` column (semicolon-separated); the
+offshore wind codes, for example, use `offshore wind`, `floating wind`, `offshore` and
+`subsea` so they don't pull in every onshore wind farm.
 *Core* codes are pulled in full.
 
 ## Usage
@@ -30,7 +40,7 @@ Requires Python 3.10+ with the standard library only, plus a Data Axle Platform 
 ```bash
 export DATA_AXLE_API_TOKEN=...            # your Data Axle key
 
-# 1. Preview the 309 request bodies without calling the API
+# 1. Preview the 391 request bodies without calling the API
 PYTHONPATH=src python -m shi_database.cli --dry-run
 
 # 2. Check match counts per query (cheap; 1 record per call)

@@ -22,6 +22,13 @@ def test_load_naics_targets_covers_all_categories() -> None:
         "Government Design Organizations",
         "Hydrodynamics Specialists",
         "Marine Engineering Organizations",
+        "Offshore Wind",
+        "Offshore Oil & Gas",
+        "Water Transportation",
+        "Ports & Cargo",
+        "Recreational Marine",
+        "Marine Suppliers",
+        "Fishing & Maritime Education",
     }
     assert any(target.code == "336611" and not target.is_broad for target in targets)
 
@@ -44,6 +51,14 @@ def test_build_query_plan_expands_broad_codes_by_keyword() -> None:
     core = [spec for _, spec in plan if spec.keyword is None]
     assert {spec.naics_code for spec in core} == {"336611", "336612"}
     assert len(plan) == len(core) + 3 * len(MARINE_QUERY_KEYWORDS)
+
+
+def test_build_query_plan_uses_per_code_keywords() -> None:
+    targets = load_naics_targets(DEFAULT_NAICS_TABLE, {"Offshore Wind", "Water Transportation"})
+    plan = build_query_plan(targets)
+    wind = [spec for target, spec in plan if target.code == "221115"]
+    assert [spec.keyword for spec in wind] == ["offshore wind", "floating wind", "offshore", "subsea"]
+    assert all(spec.keyword is None for target, spec in plan if target.category == "Water Transportation")
 
 
 def test_build_body_includes_naics_state_and_keyword() -> None:

@@ -1,22 +1,47 @@
-category,naics_code,naics_title,tier,notes
-Shipyards,336611,Ship Building and Repairing,core,"Commercial and naval shipyards, floating drydocks, ship conversion and repair yards"
-Shipyards,336612,Boat Building,core,"Builders of boats under ~65 ft: workboats, patrol craft, yachts"
-Maritime Contractors,488310,Port and Harbor Operations,core,"Port authorities, dock and pier operators"
-Maritime Contractors,488330,Navigational Services to Shipping,core,"Salvage, tugboat assist, piloting"
-Maritime Contractors,488390,Other Support Activities for Water Transportation,core,"Ship cleaning and scaling, marine surveying, dry dock support"
-Maritime Contractors,237990,Other Heavy and Civil Engineering Construction,broad,"Marine construction: dredging, piers, breakwaters, jetties, waterway work"
-Maritime Contractors,811310,Commercial and Industrial Machinery and Equipment (except Automotive and Electronic) Repair and Maintenance,broad,"Marine engine and shipboard machinery repair"
-Maritime Contractors,333618,Other Engine Equipment Manufacturing,broad,"Marine propulsion engines"
-Maritime Contractors,334511,"Search, Detection, Navigation, Guidance, Aeronautical, and Nautical System and Instrument Manufacturing",broad,"Sonar, naval combat and navigation systems"
-Independent Design Firms,541330,Engineering Services,broad,"Naval architecture and marine engineering design firms"
-Independent Design Firms,541310,Architectural Services,broad,"Naval architects registered as architectural services"
-Independent Design Firms,541490,Other Specialized Design Services,broad,"Yacht and vessel interior/exterior design studios"
-Government Design Organizations,928110,National Security,broad,"NAVSEA, Naval Surface Warfare Centers (e.g. Carderock), Supervisors of Shipbuilding, USCG design offices"
-Government Design Organizations,926120,Regulation and Administration of Transportation Programs,broad,"MARAD and other maritime transportation agencies"
-Hydrodynamics Specialists,541715,"Research and Development in the Physical, Engineering, and Life Sciences (except Nanotechnology and Biotechnology)",broad,"Towing tanks, model basins, CFD and hydrodynamic R&D"
-Hydrodynamics Specialists,541380,Testing Laboratories and Services,broad,"Model testing, cavitation tunnels, seakeeping test facilities"
-Hydrodynamics Specialists,541690,"Other Scientific and Technical Consulting Services",broad,"Hydrodynamic and ocean engineering consultants"
-Marine Engineering Organizations,541370,Surveying and Mapping (except Geophysical) Services,broad,"Hydrographic surveying"
-Marine Engineering Organizations,541990,"All Other Professional, Scientific, and Technical Services",broad,"Marine surveyors and consultants"
-Marine Engineering Organizations,813920,Professional Organizations,broad,"SNAME, ASNE, marine engineering societies"
-Marine Engineering Organizations,813910,Business Associations,broad,"Shipbuilders Council of America and other maritime trade groups"
+category,naics_code,naics_title,tier,notes,keywords
+Shipyards,336611,Ship Building and Repairing,core,"Commercial and naval shipyards, floating drydocks, ship conversion and repair yards",
+Shipyards,336612,Boat Building,core,"Builders of boats under ~65 ft: workboats, patrol craft, yachts",
+Maritime Contractors,488310,Port and Harbor Operations,core,"Port authorities, dock and pier operators",
+Maritime Contractors,488330,Navigational Services to Shipping,core,"Salvage, tugboat assist, piloting",
+Maritime Contractors,488390,Other Support Activities for Water Transportation,core,"Ship cleaning and scaling, marine surveying, dry dock support",
+Maritime Contractors,237990,Other Heavy and Civil Engineering Construction,broad,"Marine construction: dredging, piers, breakwaters, jetties, waterway work",
+Maritime Contractors,811310,Commercial and Industrial Machinery and Equipment (except Automotive and Electronic) Repair and Maintenance,broad,"Marine engine and shipboard machinery repair",
+Maritime Contractors,333618,Other Engine Equipment Manufacturing,broad,"Marine propulsion engines",
+Maritime Contractors,334511,"Search, Detection, Navigation, Guidance, Aeronautical, and Nautical System and Instrument Manufacturing",broad,"Sonar, naval combat and navigation systems",
+Independent Design Firms,541330,Engineering Services,broad,"Naval architecture and marine engineering design firms",
+Independent Design Firms,541310,Architectural Services,broad,"Naval architects registered as architectural services",
+Independent Design Firms,541490,Other Specialized Design Services,broad,"Yacht and vessel interior/exterior design studios",
+Government Design Organizations,928110,National Security,broad,"NAVSEA, Naval Surface Warfare Centers (e.g. Carderock), Supervisors of Shipbuilding, USCG design offices",
+Government Design Organizations,926120,Regulation and Administration of Transportation Programs,broad,"MARAD and other maritime transportation agencies",
+Hydrodynamics Specialists,541715,"Research and Development in the Physical, Engineering, and Life Sciences (except Nanotechnology and Biotechnology)",broad,"Towing tanks, model basins, CFD and hydrodynamic R&D",
+Hydrodynamics Specialists,541380,Testing Laboratories and Services,broad,"Model testing, cavitation tunnels, seakeeping test facilities",
+Hydrodynamics Specialists,541690,"Other Scientific and Technical Consulting Services",broad,"Hydrodynamic and ocean engineering consultants",
+Marine Engineering Organizations,541370,Surveying and Mapping (except Geophysical) Services,broad,"Hydrographic surveying",
+Marine Engineering Organizations,541990,"All Other Professional, Scientific, and Technical Services",broad,"Marine surveyors and consultants",
+Marine Engineering Organizations,813920,Professional Organizations,broad,"SNAME, ASNE, marine engineering societies",
+Marine Engineering Organizations,813910,Business Associations,broad,"Shipbuilders Council of America and other maritime trade groups",
+Offshore Wind,221115,Wind Electric Power Generation,broad,"Offshore wind farm developers and operators (code also covers all onshore wind)",offshore wind;floating wind;offshore;subsea
+Offshore Wind,237130,Power and Communication Line and Related Structures Construction,broad,"Subsea export/array cable installation and offshore substation construction",offshore wind;floating wind;offshore;subsea
+Offshore Wind,333611,Turbine and Turbine Generator Set Units Manufacturing,broad,"Offshore wind turbine and nacelle manufacturers",offshore wind;floating wind;offshore;subsea
+Offshore Wind,335929,Other Communication and Energy Wire Manufacturing,broad,"Subsea power cable manufacturers",offshore wind;floating wind;offshore;subsea
+Offshore Oil & Gas,211120,Crude Petroleum Extraction,broad,"Offshore and deepwater oil and gas producers",offshore;subsea;deepwater
+Offshore Oil & Gas,213111,Drilling Oil and Gas Wells,broad,"Offshore drilling contractors (jackups, drillships, semisubmersibles)",offshore;subsea;marine;deepwater
+Offshore Oil & Gas,213112,Support Activities for Oil and Gas Operations,broad,"Offshore service, supply and well-intervention companies",offshore;subsea;marine;deepwater
+Offshore Oil & Gas,541360,Geophysical Surveying and Mapping Services,broad,"Marine seismic and offshore geophysical survey firms",offshore;marine;subsea;ocean
+Water Transportation,483111,Deep Sea Freight Transportation,core,"Ocean shipping lines and vessel owners",
+Water Transportation,483112,Deep Sea Passenger Transportation,core,"Cruise lines and ocean passenger carriers",
+Water Transportation,483113,Coastal and Great Lakes Freight Transportation,core,"Coastal, Great Lakes and tug-and-barge freight operators",
+Water Transportation,483114,Coastal and Great Lakes Passenger Transportation,core,"Coastal ferries and passenger vessel operators",
+Water Transportation,483211,Inland Water Freight Transportation,core,"River and inland barge freight operators",
+Water Transportation,483212,Inland Water Passenger Transportation,core,"River and lake ferries and passenger vessels",
+Ports & Cargo,488320,Marine Cargo Handling,core,"Stevedores and marine terminal operators",
+Ports & Cargo,488510,Freight Transportation Arrangement,broad,"Ocean freight forwarders, NVOCCs and ship agents",ocean;maritime;marine;shipping;vessel;port
+Recreational Marine,713930,Marinas,core,"Marinas, boat slips and boat storage",
+Recreational Marine,441222,Boat Dealers,core,"New and used boat and outboard motor dealers",
+Recreational Marine,487210,"Scenic and Sightseeing Transportation, Water",core,"Harbor tours, charter fishing and sightseeing boats",
+Recreational Marine,811490,Other Personal and Household Goods Repair and Maintenance,broad,"Pleasure boat and outboard motor repair",boat;marine;yacht;outboard
+Marine Suppliers,423860,Transportation Equipment and Supplies (except Motor Vehicle) Merchant Wholesalers,broad,"Marine equipment, ship chandlers and marine supply distributors",
+Marine Suppliers,532411,"Commercial Air, Rail, and Water Transportation Equipment Rental and Leasing",broad,"Vessel, barge and workboat chartering and leasing",vessel;marine;boat;barge;ship;tug
+Fishing & Maritime Education,114111,Finfish Fishing,core,"Commercial fishing vessel operators",
+Fishing & Maritime Education,114112,Shellfish Fishing,core,"Commercial shellfish vessel operators",
+Fishing & Maritime Education,611310,"Colleges, Universities, and Professional Schools",broad,"State maritime academies and naval architecture programs",maritime;merchant marine;naval;ocean engineering

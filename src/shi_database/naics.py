@@ -20,12 +20,15 @@ class NaicsTarget:
         title: Official NAICS title.
         tier: "core" if every business under the code is marine-related,
             "broad" if results must be narrowed with marine keywords.
+        keywords: Search keywords for a broad code; empty means the default
+            marine keyword list.
     """
 
     category: str
     code: str
     title: str
     tier: str
+    keywords: tuple[str, ...] = ()
 
     @property
     def is_broad(self) -> bool:
@@ -78,4 +81,5 @@ def _parse_row(row: dict[str, str], line_no: int) -> NaicsTarget:
         code=code,
         title=row["naics_title"].strip(),
         tier=tier,
+        keywords=tuple(word.strip() for word in (row.get("keywords") or "").split(";") if word.strip()),
     )

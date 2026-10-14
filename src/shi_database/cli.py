@@ -22,7 +22,8 @@ TOKEN_ENV_VAR = "DATA_AXLE_API_TOKEN"  # noqa: S105 - env var name, not a secret
 def build_query_plan(targets: list[NaicsTarget]) -> list[tuple[NaicsTarget, QuerySpec]]:
     """Expand NAICS targets into the concrete queries to run.
 
-    Core codes are pulled in full; broad codes get one query per marine keyword.
+    Core codes are pulled in full; broad codes get one query per keyword (the
+    code's own keywords if the table lists any, else the marine keyword list).
 
     Args:
         targets: NAICS targets to query.
@@ -35,7 +36,8 @@ def build_query_plan(targets: list[NaicsTarget]) -> list[tuple[NaicsTarget, Quer
         if not target.is_broad:
             plan.append((target, QuerySpec(target.code)))
             continue
-        plan.extend((target, QuerySpec(target.code, keyword)) for keyword in MARINE_QUERY_KEYWORDS)
+        keywords = target.keywords or MARINE_QUERY_KEYWORDS
+        plan.extend((target, QuerySpec(target.code, keyword)) for keyword in keywords)
     return plan
 
 

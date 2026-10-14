@@ -39,6 +39,7 @@ def test_build_workbook_classifies_dedupes_and_flags(tmp_path: Path) -> None:
             ["Gulf Shipyard Inc", "1 Dock Rd", "Mobile", "AL", "36602", "100", "33661101", "33661101"],
             ["Acme Engineering", "2 Main St", "Austin", "TX", "78701", "200", "54133001", "54133001"],
             ["Deep Sea Freight Co", "3 Pier St", "Miami", "FL", "33101", "300", "48311101", "48311101"],
+            ["Main Street Diner", "4 Elm St", "Ames", "IA", "50010", "400", "72251101", "72251101"],
         ],
     )
     second = _write_export(
@@ -47,7 +48,7 @@ def test_build_workbook_classifies_dedupes_and_flags(tmp_path: Path) -> None:
     )
     targets = load_naics_targets(DEFAULT_NAICS_TABLE)
     companies, dates, rows_read = load_companies([first, second], targets)
-    assert (len(companies), rows_read, dates) == (3, 4, ["2026-10-13"])
+    assert (len(companies), rows_read, dates) == (4, 5, ["2026-10-13"])
 
     output = tmp_path / "out.xlsx"
     build_workbook(companies, targets, output, ["a.xlsx", "b.xlsx"], dates, rows_read)
@@ -56,10 +57,11 @@ def test_build_workbook_classifies_dedupes_and_flags(tmp_path: Path) -> None:
     assert workbook[sheet_name("Shipyards")]["A2"].value == "Gulf Shipyard Inc"
     design = workbook[sheet_name("Independent Design Firms")]
     headers = [cell.value for cell in design[1]]
-    assert design.cell(2, headers.index("Needs Review") + 1).value == "yes"
+    assert design.cell(2, headers.index("Needs Review") + 1).value == "Independent Design Firms"
     assert design["A2"].fill.fgColor.rgb.endswith("FFF2CC")
-    assert workbook[UNMATCHED_SHEET]["A2"].value == "Deep Sea Freight Co"
-    assert workbook[ALL_SHEET].max_row == 4
+    assert workbook[sheet_name("Water Transportation")]["A2"].value == "Deep Sea Freight Co"
+    assert workbook[UNMATCHED_SHEET]["A2"].value == "Main Street Diner"
+    assert workbook[ALL_SHEET].max_row == 5
     assert workbook[ALL_SHEET].freeze_panes == "B2"
 
 

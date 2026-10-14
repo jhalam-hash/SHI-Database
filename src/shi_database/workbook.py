@@ -82,11 +82,15 @@ class Company:
 
     values: dict[str, str]
     categories: list[str]
+    review: list[str]
 
-    @property
-    def needs_review(self) -> bool:
-        """True when only broad codes matched and the name has no marine term."""
-        return self.values["Needs Review"] == "yes"
+    def needs_review(self, category: str | None = None) -> bool:
+        """True if the company's place in ``category`` (or any category) is doubtful.
+
+        That is when the category matched only through broad codes and the name has
+        neither a marine term nor one of those codes' own keywords.
+        """
+        return bool(self.review) if category is None else category in self.review
 
 
 def read_export(path: Path) -> tuple[list[dict[str, str]], str]:
@@ -125,7 +129,16 @@ def classify(record: dict[str, str], targets: list[NaicsTarget], source: str) ->
     hits = [target for target in targets if target.code in codes]
     categories = sorted({target.category for target in hits})
     has_core = any(not target.is_broad for target in hits)
-    marine_name = name_has_marine_term(record.get("Company Name", ""))
+    name = record.get("Company Name", "")
+    marine_name = name_has_marine_term(name)
+    review = []
+    for category in categories:
+        category_hits = [target for target in hits if target.category == category]
+        if any(not target.is_broad for target in category_hits) or marine_name:
+            continue
+        keywords = (keyword.lower() for target in category_hits for keyword in target.keywords)
+        if not any(keyword in name.lower() for keyword in keywords):
+            review.append(category)
     tier = "core" if has_core else ("broad" if hits else "")
 
     values = {header: record.get(source_col, "") if source_col else "" for header, source_col in COLUMNS}
@@ -137,13 +150,13 @@ def classify(record: dict[str, str], targets: list[NaicsTarget], source: str) ->
             "Matched NAICS": "; ".join(sorted({target.code for target in hits})),
             "Match Tier": tier,
             "Name Has Marine Term": "yes" if marine_name else "no",
-            "Needs Review": "yes" if tier == "broad" and not marine_name else "no",
+            "Needs Review": "; ".join(review),
             "Primary NAICS": codes[0] if codes else "",
             "All NAICS": "; ".join(codes),
             "Source File": source,
         }
     )
-    return Company(values, categories)
+    return Company(values, categories, review)
 
 
 def dedupe_key(values: dict[str, str]) -> str:
@@ -184,12 +197,18 @@ def sheet_name(category: str) -> str:
     return category.replace("Organizations", "Orgs")[:31]
 
 
-def write_company_sheet(sheet: Worksheet, companies: list[Company], flag_review: bool) -> None:
-    """Write a company table with bold frozen headers, filters and review highlighting."""
+def write_company_sheet(
+    sheet: Worksheet, companies: list[Company], review_category: str | None, flag_review: bool = True
+) -> None:
+    """Write a company table with bold frozen headers, filters and review highlighting.
+
+    Rows are highlighted when the company needs review for ``review_category``, or
+    for any category when it is None.
+    """
     sheet.append(list(HEADERS))
     for company in companies:
         sheet.append([company.values[header] for header in HEADERS])
-        if flag_review and company.needs_review:
+        if flag_review and company.needs_review(review_category):
             for cell in sheet[sheet.max_row]:
                 cell.fill = _REVIEW_FILL
     for cell in sheet[1]:
@@ -253,8 +272,10 @@ def write_summary(
             "Each company's Primary NAICS and NAICS 1-10 (8-digit Data Axle codes, first 6 digits used) "
             "are matched against data/marine_naics_codes.csv. A company appears on every category tab "
             "its codes match. 'core' codes are marine by definition; 'broad' codes (e.g. 541330 "
-            "Engineering Services) are not, so broad-only matches whose name has no marine term are "
-            "highlighted yellow (Needs Review = yes). Companies with no SHI code are on the "
+            "Engineering Services) are not. When a category matched only through broad codes and the "
+            "name has no marine term (or keyword of those codes, e.g. 'offshore'), the category is "
+            "listed under Needs Review and the row is highlighted yellow on that tab and on All "
+            "Companies. Companies with no SHI code are on the "
             f"'{UNMATCHED_SHEET}' tab.",
         ),
         (
@@ -276,7 +297,7 @@ def write_summary(
             [
                 category,
                 f"=COUNTA({tab}!$A:$A)-1",
-                f'=COUNTIF({tab}!${col["Needs Review"]}:${col["Needs Review"]},"yes")',
+                f'=COUNTIF({tab}!${col["Needs Review"]}:${col["Needs Review"]},"*{category}*")',
             ]
         )
     sheet.append(["No SHI NAICS match", f"=COUNTA('{UNMATCHED_SHEET}'!$A:$A)-1", ""])
@@ -325,12 +346,12 @@ def build_workbook(
     broad_only = {t.category for t in targets} - {t.category for t in targets if not t.is_broad}
     for category in dict.fromkeys(target.category for target in targets):
         members = [c for c in companies if category in c.categories]
-        write_company_sheet(workbook.create_sheet(sheet_name(category)), members, flag_review=True)
+        write_company_sheet(workbook.create_sheet(sheet_name(category)), members, category)
         if category in broad_only:
             workbook[sheet_name(category)].sheet_properties.tabColor = "BF8F00"
     unmatched = [c for c in companies if not c.categories]
-    write_company_sheet(workbook.create_sheet(UNMATCHED_SHEET), unmatched, flag_review=False)
-    write_company_sheet(workbook.create_sheet(ALL_SHEET), companies, flag_review=True)
+    write_company_sheet(workbook.create_sheet(UNMATCHED_SHEET), unmatched, None, flag_review=False)
+    write_company_sheet(workbook.create_sheet(ALL_SHEET), companies, None)
     write_summary(summary, companies, targets, sources, export_dates, rows_read)
     output.parent.mkdir(parents=True, exist_ok=True)
     workbook.save(output)
