@@ -126,19 +126,24 @@ def classify(record: dict[str, str], targets: list[NaicsTarget], source: str) ->
     """Match a record's NAICS codes against the SHI table and build its output row."""
     codes = [record.get(col, "")[:6] for col in NAICS_COLUMNS]
     codes = list(dict.fromkeys(code for code in codes if len(code) == 6 and code.isdigit()))
-    hits = [target for target in targets if target.code in codes]
+    name = record.get("Company Name", "")
+    # A code narrowed by its own keywords (e.g. 221115 wind power, "offshore") only counts when
+    # the name contains one, mirroring the keyword queries the API pull runs for it.
+    hits = [
+        target
+        for target in targets
+        if target.code in codes
+        and (not target.keywords or any(keyword.lower() in name.lower() for keyword in target.keywords))
+    ]
     categories = sorted({target.category for target in hits})
     has_core = any(not target.is_broad for target in hits)
-    name = record.get("Company Name", "")
     marine_name = name_has_marine_term(name)
     review = []
     for category in categories:
         category_hits = [target for target in hits if target.category == category]
-        if any(not target.is_broad for target in category_hits) or marine_name:
+        if marine_name or any(not target.is_broad or target.keywords for target in category_hits):
             continue
-        keywords = (keyword.lower() for target in category_hits for keyword in target.keywords)
-        if not any(keyword in name.lower() for keyword in keywords):
-            review.append(category)
+        review.append(category)
     tier = "core" if has_core else ("broad" if hits else "")
 
     values = {header: record.get(source_col, "") if source_col else "" for header, source_col in COLUMNS}
@@ -272,10 +277,11 @@ def write_summary(
             "Each company's Primary NAICS and NAICS 1-10 (8-digit Data Axle codes, first 6 digits used) "
             "are matched against data/marine_naics_codes.csv. A company appears on every category tab "
             "its codes match. 'core' codes are marine by definition; 'broad' codes (e.g. 541330 "
-            "Engineering Services) are not. When a category matched only through broad codes and the "
-            "name has no marine term (or keyword of those codes, e.g. 'offshore'), the category is "
-            "listed under Needs Review and the row is highlighted yellow on that tab and on All "
-            "Companies. Companies with no SHI code are on the "
+            "Engineering Services) are not. A broad code with its own keywords (e.g. 221115 wind power: "
+            "'offshore') counts only when the company name contains one. When a category matched only "
+            "through other broad codes and the name has no marine term, the category is listed under "
+            "Needs Review and the row is highlighted yellow on that tab and on All Companies. "
+            "Companies with no SHI code are on the "
             f"'{UNMATCHED_SHEET}' tab.",
         ),
         (

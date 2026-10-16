@@ -77,3 +77,21 @@ def test_load_companies_rejects_non_export(tmp_path: Path) -> None:
 
 def test_sheet_name_fits_excel_limit() -> None:
     assert sheet_name("Marine Engineering Organizations") == "Marine Engineering Orgs"
+
+
+def test_keyword_narrowed_codes_need_keyword_in_name(tmp_path: Path) -> None:
+    export = _write_export(
+        tmp_path / "c.xlsx",
+        [
+            ["Prairie Wind Farm LLC", "1 Ridge Rd", "Ames", "IA", "50010", "500", "22111501", "22111501"],
+            ["Atlantic Offshore Wind", "2 Pier Rd", "Boston", "MA", "02110", "600", "22111501", "22111501"],
+            ["Coastal Hydrodynamics Inc", "3 Lab Rd", "Mobile", "AL", "36602", "700", "54133001", "54133001"],
+        ],
+    )
+    companies, _, _ = load_companies([export], load_naics_targets(DEFAULT_NAICS_TABLE))
+    by_name = {c.values["Company Name"]: c for c in companies}
+    assert by_name["Prairie Wind Farm LLC"].categories == []
+    assert by_name["Atlantic Offshore Wind"].categories == ["Offshore Wind"]
+    hydro = by_name["Coastal Hydrodynamics Inc"]
+    assert hydro.categories == ["Hydrodynamics Specialists", "Independent Design Firms"]
+    assert not hydro.needs_review()

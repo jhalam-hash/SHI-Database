@@ -50,7 +50,9 @@ def test_build_query_plan_expands_broad_codes_by_keyword() -> None:
     plan = build_query_plan(targets)
     core = [spec for _, spec in plan if spec.keyword is None]
     assert {spec.naics_code for spec in core} == {"336611", "336612"}
-    assert len(plan) == len(core) + 3 * len(MARINE_QUERY_KEYWORDS)
+    broad = [target for target in targets if target.is_broad]
+    expected = sum(len(target.keywords or MARINE_QUERY_KEYWORDS) for target in broad)
+    assert len(plan) == len(core) + expected
 
 
 def test_build_query_plan_uses_per_code_keywords() -> None:
