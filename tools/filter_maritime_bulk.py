@@ -9,7 +9,9 @@ A business is kept when any of its NAICS columns starts with a code below and:
   * the code is "core" (every business under it is maritime), or
   * the code is "broad" and the company name contains one of its keywords, or
     a marine term (marine, ship..., boat..., naval, harbor, ...) when the code
-    has no keywords of its own.
+    has no keywords of its own, or
+  * the code is one of the small specialized codes in INCLUDE_ALL_CODES; such rows
+    are marked "SHI Needs Verification" = yes.
 
 Needs only Python 3.9+ (python.org or the Microsoft Store); no extra packages.
 Run it by double-clicking it and choosing the zip, or from a terminal:
@@ -112,6 +114,12 @@ def keyword_pattern(keywords: tuple[str, ...]) -> re.Pattern[str]:
 
 RULES = [(code, cat, tier, keyword_pattern(kws) if kws else None) for code, cat, tier, kws in TARGETS]
 
+# Small, specialized broad codes kept in full even without a marine word in the name.
+# Those rows are marked "SHI Needs Verification" = yes so they can be checked one by one.
+INCLUDE_ALL_CODES = frozenset(
+    {"333618", "333611", "335929", "331420", "213111", "211130", "221115", "532411"}
+)
+
 
 def match(codes: list[str], name: str) -> list[tuple[str, str]]:
     """Return the (code, category) pairs this business qualifies for."""
@@ -122,6 +130,16 @@ def match(codes: list[str], name: str) -> list[tuple[str, str]]:
         if tier == "core" or (pattern.search(name) if pattern else MARINE_NAME.search(name)):
             hits.append((code, category))
     return hits
+
+
+def unverified_matches(codes: list[str], name: str) -> list[tuple[str, str]]:
+    """(code, category) pairs kept only because the code is in INCLUDE_ALL_CODES."""
+    confirmed = set(match(codes, name))
+    return [
+        (code, category)
+        for code, category, _, _ in RULES
+        if code in codes and code in INCLUDE_ALL_CODES and (code, category) not in confirmed
+    ]
 
 
 def find_columns(header: list[str]) -> tuple[list[int], int]:
@@ -160,7 +178,7 @@ def iter_csv_sources(path: Path) -> Iterator[tuple[str, IO[bytes]]]:
 
 def run(source: Path, out_zip: Path) -> None:
     """Filter every data file under ``source`` into ``out_zip``."""
-    kept, read, bad = 0, 0, 0
+    kept, read, bad, unverified = 0, 0, 0, 0
     per_category: Counter[str] = Counter()
     header_out: list[str] | None = None
     started = time.time()
@@ -177,7 +195,8 @@ def run(source: Path, out_zip: Path) -> None:
             header = next(csv.reader([first], delimiter=delimiter))
             naics_cols, name_col = find_columns(header)
             if header_out is None:
-                header_out = [*header, "SHI Categories", "SHI Matched NAICS", "Source File"]
+                extra_cols = ["SHI Categories", "SHI Matched NAICS", "SHI Needs Verification", "Source File"]
+                header_out = [*header, *extra_cols]
                 writer.writerow(header_out)
                 naics_names = [header[i] for i in naics_cols]
                 print(f"Columns found: name = {header[name_col]!r}; NAICS = {naics_names}")
@@ -191,21 +210,26 @@ def run(source: Path, out_zip: Path) -> None:
                     continue
                 try:
                     row = next(csv.reader([raw.decode("latin-1")], delimiter=delimiter))
-                    hits = match([row[i].strip()[:6] for i in naics_cols if i < len(row)], row[name_col])
+                    row_codes = [row[i].strip()[:6] for i in naics_cols if i < len(row)]
+                    hits = match(row_codes, row[name_col])
+                    extra = unverified_matches(row_codes, row[name_col])
                 except (StopIteration, IndexError, csv.Error):
                     bad += 1
                     continue
-                if not hits:
+                if not hits and not extra:
                     continue
-                categories = sorted({category for _, category in hits})
-                codes = sorted({code for code, _ in hits})
+                categories = sorted({category for _, category in hits + extra})
+                codes = sorted({code for code, _ in hits + extra})
                 per_category.update(categories)
-                writer.writerow([*row, "; ".join(categories), "; ".join(codes), label])
+                needs_check = "" if hits else "yes"
+                unverified += bool(needs_check)
+                writer.writerow([*row, "; ".join(categories), "; ".join(codes), needs_check, label])
                 kept += 1
                 file_kept += 1
             elapsed = time.time() - started
             print(f"  {label}: kept {file_kept:,}  (total {kept:,} of {read:,} read, {elapsed:.0f}s)")
     print(f"\nDone: kept {kept:,} maritime businesses out of {read:,}; {bad:,} unreadable lines skipped.")
+    print(f"{unverified:,} of them are kept only by NAICS code and need checking (SHI Needs Verification).")
     for category, n in per_category.most_common():
         print(f"  {category}: {n:,}")
     print(f"\nUpload this file to Claude: {out_zip}  ({out_zip.stat().st_size / 1e6:.1f} MB)")

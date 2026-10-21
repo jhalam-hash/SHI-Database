@@ -97,7 +97,8 @@ and 423910.
 
 Library bulk files (one CSV per state in a zip of ~60 GB) are too big to upload.
 `tools/filter_maritime_bulk.py` reads the zip without extracting it, keeps only businesses
-with an SHI NAICS code (broad codes also need a marine keyword in the name), and writes a
+with an SHI NAICS code (broad codes also need a marine keyword in the name, except eight small
+specialized codes kept in full and marked `SHI Needs Verification`), and writes a
 small `<name>_maritime.zip`. It needs only Python 3.9+; double-click it to choose the
 file, or run `python tools/filter_maritime_bulk.py path/to/file.zip`. It looks for a
 company-name column and columns with "NAICS" in their name, so files with generic

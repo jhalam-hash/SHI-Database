@@ -35,3 +35,10 @@ def test_match_applies_core_and_keyword_rules() -> None:
     assert tool.match(["488510"], "Acme Transport") == []
     assert tool.match(["488510"], "Ocean Freight") == [("488510", "Ports & Cargo")]
     assert tool.match(["541330"], "Smith Engineering") == []
+
+
+def test_include_all_codes_are_kept_but_marked_unverified() -> None:
+    tool = _load_tool()
+    assert tool.match(["333618"], "Smith Engines") == []
+    assert tool.unverified_matches(["333618"], "Smith Engines") == [("333618", "Maritime Contractors")]
+    assert tool.unverified_matches(["213111"], "Gulf Offshore Drilling") == []
