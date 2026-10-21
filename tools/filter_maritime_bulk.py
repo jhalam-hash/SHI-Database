@@ -184,6 +184,9 @@ def run(source: Path, out_zip: Path) -> None:
             file_kept = 0
             for raw in lines:
                 read += 1
+                if read % 1_000_000 == 0:
+                    elapsed = time.time() - started
+                    print(f"  ...{read:,} rows read, {kept:,} kept so far ({elapsed:.0f}s)", flush=True)
                 if not CODE_IN_LINE.search(raw):
                     continue
                 try:
