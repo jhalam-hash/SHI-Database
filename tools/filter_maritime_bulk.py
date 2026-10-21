@@ -140,11 +140,16 @@ def find_columns(header: list[str]) -> tuple[list[int], int]:
 
 
 def iter_csv_sources(path: Path) -> Iterator[tuple[str, IO[bytes]]]:
-    """Yield (file name, binary stream) for every CSV in a zip or a folder, without extracting."""
+    """Yield (file name, binary stream) for each data file: a single CSV/text file, every
+    CSV/text file in a folder, or every one inside a zip (read without extracting)."""
     if path.is_dir():
-        for csv_path in sorted(path.rglob("*.[cC][sS][vV]")):
-            with csv_path.open("rb") as stream:
-                yield csv_path.name, stream
+        for data_path in sorted(p for p in path.rglob("*") if p.suffix.lower() in (".csv", ".txt")):
+            with data_path.open("rb") as stream:
+                yield data_path.name, stream
+        return
+    if not zipfile.is_zipfile(path):
+        with path.open("rb") as stream:
+            yield path.name, stream
         return
     with zipfile.ZipFile(path) as archive:
         for info in sorted(archive.infolist(), key=lambda i: i.filename):
@@ -154,7 +159,7 @@ def iter_csv_sources(path: Path) -> Iterator[tuple[str, IO[bytes]]]:
 
 
 def run(source: Path, out_zip: Path) -> None:
-    """Filter every CSV under ``source`` into ``out_zip``."""
+    """Filter every data file under ``source`` into ``out_zip``."""
     kept, read, bad = 0, 0, 0
     per_category: Counter[str] = Counter()
     header_out: list[str] | None = None
@@ -167,7 +172,9 @@ def run(source: Path, out_zip: Path) -> None:
         writer = csv.writer(out)
         for label, stream in iter_csv_sources(source):
             lines = iter(stream)
-            header = next(csv.reader([next(lines).decode("latin-1")]))
+            first = next(lines).decode("latin-1")
+            delimiter = max((",", "\t", "|"), key=first.count)
+            header = next(csv.reader([first], delimiter=delimiter))
             naics_cols, name_col = find_columns(header)
             if header_out is None:
                 header_out = [*header, "SHI Categories", "SHI Matched NAICS", "Source File"]
@@ -180,7 +187,7 @@ def run(source: Path, out_zip: Path) -> None:
                 if not CODE_IN_LINE.search(raw):
                     continue
                 try:
-                    row = next(csv.reader([raw.decode("latin-1")]))
+                    row = next(csv.reader([raw.decode("latin-1")], delimiter=delimiter))
                     hits = match([row[i].strip()[:6] for i in naics_cols if i < len(row)], row[name_col])
                 except (StopIteration, IndexError, csv.Error):
                     bad += 1
