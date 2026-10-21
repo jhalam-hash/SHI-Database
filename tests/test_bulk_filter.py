@@ -42,3 +42,22 @@ def test_include_all_codes_are_kept_but_marked_unverified() -> None:
     assert tool.match(["333618"], "Smith Engines") == []
     assert tool.unverified_matches(["333618"], "Smith Engines") == [("333618", "Maritime Contractors")]
     assert tool.unverified_matches(["213111"], "Gulf Offshore Drilling") == []
+
+
+def test_list_industry_codes_finds_naics_and_sic_columns() -> None:
+    path = TOOL.with_name("list_industry_codes.py")
+    spec = importlib.util.spec_from_file_location("list_industry_codes", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    header = [
+        "COMPANY",
+        "PRIMARY SIC CODE",
+        "SIC6_DESCRIPTIONS",
+        "PRIMARY NAICS CODE",
+        "NAICS8 DESCRIPTIONS",
+        "SIC CODE 1",
+        "SIC6_DESCRIPTIONS (SIC1)",
+        "ZIPCODE",
+    ]
+    assert module.code_columns(header) == [("SIC", 1, 2, True), ("NAICS", 3, 4, True), ("SIC", 5, 6, False)]
