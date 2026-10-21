@@ -95,3 +95,16 @@ def test_keyword_narrowed_codes_need_keyword_in_name(tmp_path: Path) -> None:
     hydro = by_name["Coastal Hydrodynamics Inc"]
     assert hydro.categories == ["Hydrodynamics Specialists", "Independent Design Firms"]
     assert not hydro.needs_review()
+
+
+def test_keywords_match_only_at_word_start(tmp_path: Path) -> None:
+    export = _write_export(
+        tmp_path / "d.xlsx",
+        [
+            ["Acme Transport Logistics", "1 Main St", "Miami", "FL", "33101", "800", "48851001", "48851001"],
+            ["Portside Freight Agents", "2 Dock St", "Miami", "FL", "33101", "900", "48851001", "48851001"],
+        ],
+    )
+    companies, _, _ = load_companies([export], load_naics_targets(DEFAULT_NAICS_TABLE))
+    by_name = {c.values["Company Name"]: c.categories for c in companies}
+    assert by_name == {"Acme Transport Logistics": [], "Portside Freight Agents": ["Ports & Cargo"]}

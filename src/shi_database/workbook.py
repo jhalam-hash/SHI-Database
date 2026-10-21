@@ -122,6 +122,11 @@ def read_export(path: Path) -> tuple[list[dict[str, str]], str]:
     return records, title
 
 
+def starts_word(keyword: str, name: str) -> bool:
+    """True if ``keyword`` begins a word in ``name`` ("port" matches Portland, not Transport)."""
+    return re.search(r"\b" + re.escape(keyword), name, re.IGNORECASE) is not None
+
+
 def classify(record: dict[str, str], targets: list[NaicsTarget], source: str) -> Company:
     """Match a record's NAICS codes against the SHI table and build its output row."""
     codes = [record.get(col, "")[:6] for col in NAICS_COLUMNS]
@@ -133,7 +138,7 @@ def classify(record: dict[str, str], targets: list[NaicsTarget], source: str) ->
         target
         for target in targets
         if target.code in codes
-        and (not target.keywords or any(keyword.lower() in name.lower() for keyword in target.keywords))
+        and (not target.keywords or any(starts_word(keyword, name) for keyword in target.keywords))
     ]
     categories = sorted({target.category for target in hits})
     has_core = any(not target.is_broad for target in hits)

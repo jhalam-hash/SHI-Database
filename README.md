@@ -93,6 +93,17 @@ October 2026. That check dropped 541310 (building architecture) and 541490 (whic
 interior design), moved Coast Guard offices to 926120, and added 211130, 331420, 541410
 and 423910.
 
+## Filtering a full Data Axle bulk file
+
+Library bulk files (one CSV per state in a zip of ~60 GB) are too big to upload.
+`tools/filter_maritime_bulk.py` reads the zip without extracting it, keeps only businesses
+with an SHI NAICS code (broad codes also need a marine keyword in the name), and writes a
+small `<name>_maritime.zip`. It needs only Python 3.9+; double-click it to choose the
+file, or run `python tools/filter_maritime_bulk.py path/to/file.zip`. It looks for a
+company-name column and columns with "NAICS" in their name, so files with generic
+`FIELD1`, `FIELD2`... headers need their record layout first. Keep its `TARGETS` list in
+step with the NAICS table (a test checks this).
+
 ## Things to confirm against your Data Axle account
 
 These settings come from public integrations, not Data Axle's official API reference, so
