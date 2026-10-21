@@ -95,15 +95,18 @@ and 423910.
 
 ## Filtering a full Data Axle bulk file
 
-Library bulk files (one CSV per state in a zip of ~60 GB) are too big to upload.
-`tools/filter_maritime_bulk.py` reads the zip without extracting it, keeps only businesses
-with an SHI NAICS code (broad codes also need a marine keyword in the name, except eight small
-specialized codes kept in full and marked `SHI Needs Verification`), and writes a
-small `<name>_maritime.zip`. It needs only Python 3.9+; double-click it to choose the
-file, or run `python tools/filter_maritime_bulk.py path/to/file.zip`. It looks for a
-company-name column and columns with "NAICS" in their name, so files with generic
-`FIELD1`, `FIELD2`... headers need their record layout first. Keep its `TARGETS` list in
-step with the NAICS table (a test checks this).
+Library bulk files (one ~6 GB text file, or a zip of state files) are too big to upload.
+`tools/filter_maritime_bulk.py` reads the file without extracting it and keeps businesses by
+**industry code only**: a core maritime primary NAICS code (`data/marine_naics_codes.csv`,
+tier `core`) or any maritime 6-digit Data Axle SIC code, primary or SIC 1-4
+(`data/maritime_sic_codes.csv`, 179 codes picked from the 2024 file's code descriptions).
+Only wind-energy and college codes also need a word in the company name (offshore wind;
+maritime or naval schools). It writes a small `<name>_maritime.zip` and needs only
+Python 3.9+: `python tools/filter_maritime_bulk.py path/to/file.txt`.
+
+`tools/list_industry_codes.py` lists every NAICS/SIC code in a bulk file with counts, which
+is how the SIC list was chosen. Government design offices, trade associations and offshore
+wind have no maritime-specific code, so those categories rely on researched entries.
 
 ## Things to confirm against your Data Axle account
 

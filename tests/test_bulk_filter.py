@@ -20,28 +20,30 @@ def _load_tool() -> ModuleType:
     return module
 
 
-def test_targets_match_naics_table() -> None:
+def test_codes_match_data_tables() -> None:
+    codes = _load_tool().CODES
     with DEFAULT_NAICS_TABLE.open(newline="", encoding="utf-8") as handle:
-        table = [
-            (r["naics_code"], r["category"], r["tier"], tuple(k for k in r["keywords"].split(";") if k))
-            for r in csv.DictReader(handle)
-        ]
-    assert list(_load_tool().TARGETS) == table
+        core = {(r["naics_code"], r["category"]) for r in csv.DictReader(handle) if r["tier"] == "core"}
+    sic_table = DEFAULT_NAICS_TABLE.with_name("maritime_sic_codes.csv")
+    with sic_table.open(newline="", encoding="utf-8") as handle:
+        sic = {(r["sic_code"], r["category"], bool(r["keywords"])) for r in csv.DictReader(handle)}
+    tool_naics = {(code, cat) for system, code, cat, kws in codes if system == "NAICS" and not kws}
+    tool_sic = {(code, cat, bool(kws)) for system, code, cat, kws in codes if system == "SIC"}
+    assert tool_naics == core
+    assert tool_sic == sic
 
 
-def test_match_applies_core_and_keyword_rules() -> None:
+def test_match_uses_codes_and_keywords_only_for_wind_and_colleges() -> None:
     tool = _load_tool()
-    assert tool.match(["336611"], "Anything Inc") == [("336611", "Shipyards")]
-    assert tool.match(["488510"], "Acme Transport") == []
-    assert tool.match(["488510"], "Ocean Freight") == [("488510", "Ports & Cargo")]
-    assert tool.match(["541330"], "Smith Engineering") == []
-
-
-def test_include_all_codes_are_kept_but_marked_unverified() -> None:
-    tool = _load_tool()
-    assert tool.match(["333618"], "Smith Engines") == []
-    assert tool.unverified_matches(["333618"], "Smith Engines") == [("333618", "Maritime Contractors")]
-    assert tool.unverified_matches(["213111"], "Gulf Offshore Drilling") == []
+    assert tool.match(["33661101"], [], "Anything Inc") == [("NAICS 336611", "Shipyards")]
+    design = tool.match(["54133006"], ["871101"], "Smith Associates")
+    assert design == [("SIC 871101", "Independent Design Firms")]
+    assert tool.match(["54133006"], ["871106"], "Smith Marine Engineering") == []
+    assert tool.match(["22111501"], ["171164"], "Prairie Wind Farm") == []
+    assert [c for _, c in tool.match(["22111501"], [], "Atlantic Offshore Wind")] == ["Offshore Wind"]
+    assert tool.match(["61131009"], ["822101"], "State University") == []
+    academy = tool.match([], ["822101"], "Maine Maritime Academy")
+    assert academy == [("SIC 822101", "Fishing & Maritime Education")]
 
 
 def test_list_industry_codes_finds_naics_and_sic_columns() -> None:
